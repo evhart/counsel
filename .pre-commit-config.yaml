@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+  - repo: https://github.com/ambv/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+        language_version: python3.11
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.1.1"
+    hooks:
+      - id: mypy
+        args:
+          [
+            --show-error-codes,
+            --ignore-missing-imports,
+            --follow-imports=skip,
+            --strict-optional,
+          ]
+        additional_dependencies:
+          ["types-croniter", "types-cachetools", "pydantic"]
+        exclude: ^counsel/models/syft.py

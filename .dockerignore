@@ -1,0 +1,9 @@
+logs/
+.env
+.git
+.cache
+**/*.class
+**/__pycache__
+.venv/
+.vscode/
+.dist/

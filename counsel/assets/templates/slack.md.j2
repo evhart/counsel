@@ -1,0 +1,10 @@
+Hello there 👋, I have identified *{{ vulnerabilities | count}} security vulnerabilites* associated with the following image: *{{ tags | first }}*. 
+
+The current security policy requires images with vulnerabilities identified as higher than *High* to be patched within *14 days*. If the image is not patched within this timeframe, the affected containers will need to be stoped.
+
+The following high/critical vulnerabilities have been identified:
+{% for v in vulnerabilities -%}
+{% if v['severity'] in ['high', 'critical'] -%}
+• <{{v['source']}}|{{ v['id']}}> - {{v['artifact']['name']}}/{{v['artifact']['version']}} ({{v['severity'].value}})
+{% endif -%}
+{% endfor %}
