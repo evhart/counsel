@@ -1,10 +1,28 @@
+import logging
 from datetime import timedelta
 
 import typer
+import urllib3
+from rich.logging import RichHandler
 
+import counsel
 from counsel.counsel import Counsel
 from counsel.models.counsel import Severity
 from counsel.policy import Policy, SlackNotification
+
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, tracebacks_suppress=[typer, urllib3])],
+)
+logging.getLogger("docker").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("apprise").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(level="INFO")
 
 app = typer.Typer()
 
@@ -48,6 +66,21 @@ def callback(
     ),
 ) -> None:
     """🕵️‍♀️ Counsel - A tool for monitoring the vulnerabilities of docker containers."""  # noqa E501
+
+    logger.info(f"Running Counsel version: {counsel.__version__}")
+    logger.info("Parameters:")
+    if scan_schedule:
+        logger.info(f"  - COUNSEL_SCAN_SHEDULE: {scan_schedule}")
+    logger.info(f"  - COUNSEL_THRESHOLD: {alert_threshold.value}")
+    logger.info(f"  - COUNSEL_REMIND_DELAY: {remind_delay}")
+
+    if slack_webhook_url:
+        logger.info(f"  - COUNSEL_SLACK_URL: {slack_webhook_url}")
+
+    if slack_msg_template:
+        logger.info(f"  - COUNSEL_SLACK_MSG_TEMPLATE_PATH: {slack_webhook_url}")
+
+    # logger.info(logging.Logger.manager.loggerDict)
 
     cs = Counsel()
     if scan_schedule != "":
@@ -94,6 +127,12 @@ def callback(
                 delay=timedelta(days=kill_delay),
                 action=slack,
             )
+        )
+
+    logger.info("Policies")
+    for pol in cs.policies:
+        logger.info(
+            f"  - {pol.name} at {str(pol.delay or 'Now')}: {str(pol.description or '')} ({pol.action.__class__.__name__})"  # noqa: E501
         )
 
     if scan_schedule != "":

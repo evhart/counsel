@@ -61,7 +61,7 @@ class Vulnerability(BaseModel):
     artifact: Artifact
     namespace: str
     severity: Severity
-    description: str
+    description: str | None
 
 
 class VulnerabilitiesSummary(BaseModel):
@@ -99,7 +99,7 @@ class VulnerabilitiesSummary(BaseModel):
                     "artifact": artifact,
                     "namespace": m["vulnerability"]["namespace"],
                     "severity": m["vulnerability"]["severity"].lower(),
-                    "description": m["vulnerability"]["description"],
+                    "description": m["vulnerability"].get("description"),
                 }
             )
 

@@ -12,7 +12,6 @@ import docker
 from cachetools import Cache, TTLCache, cachedmethod
 from croniter import croniter
 from pydantic import BaseModel, FilePath, PrivateAttr
-from rich import print
 
 from counsel.models.counsel import BOM, Container, Image, VulnerabilitiesSummary
 from counsel.policy import Policy
@@ -136,11 +135,14 @@ class Counsel(BaseModel):
         lambda self: self._methods_cache, key=cachetools.keys.methodkey  # type: ignore
     )  # noaq E501
     def bom(self, image_id: str) -> BOM:
+        logger.info(f"Getting BOOM for: {image_id}")
+
         data = run(
             [self.syft_path, "--quiet", "-o", "json", image_id],
             capture_output=True,
         )
         # data = json.loads(data.stdout)
+
         return BOM.parse_raw(data.stdout)
 
     @cachedmethod(
@@ -149,6 +151,7 @@ class Counsel(BaseModel):
     def vulnerabilities(self, image_id: str) -> VulnerabilitiesSummary:
         # Analyse vulnerabilities using Grype:
         # Create temporary file for analysis:
+        logger.info(f"Getting vulnerabilities for: {image_id}")
         v = VulnerabilitiesSummary(image_id=image_id, tags=[], vulnerabilities=[])
         bom = self.bom(image_id)
 
@@ -175,15 +178,15 @@ class Counsel(BaseModel):
         cron_itr = croniter(self.scan_all_schedule)  # type: ignore
         scheduler = sched.scheduler(timefunc=time.time)
 
-        print(f"Cron schedule is: '{self.scan_all_schedule}'")
+        logger.info(f"Cron schedule is: '{self.scan_all_schedule}'")
 
         if initial_scan:
-            print("Runnint initial scan before scheduling (initial_scan=True).")
+            logger.info("Running initial scan before scheduling (initial_scan=True).")
             self.scan_all(apply_policies=apply_policies)
         try:
             while True:
                 t = cron_itr.get_next(datetime)
-                print(f"The next scan is scheduled at: {t}.")
+                logger.info(f"The next scan is scheduled at: {t}.")
                 scheduler.enterabs(
                     t.timestamp(),
                     1,
@@ -192,7 +195,12 @@ class Counsel(BaseModel):
                 )
                 scheduler.run()
         except KeyboardInterrupt:
-            print("Stopping scheduler")
+            logger.info("Stopping scheduler")
         finally:
             for e in scheduler.queue:
                 scheduler.cancel(e)
+
+
+if __name__ == "__main__":
+    c = Counsel()
+    c.scan_all()

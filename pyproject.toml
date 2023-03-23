@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "counsel"
-version = "0.1.0a0"
+version = "0.1.1a0"
 description = "A tool for monitoring the vulnerabilities of docker containers."
 authors = ["Grégoire Burel <evhart@users.noreply.github.com>"]
 homepage = "https://github.com/evhart/counsel/"
