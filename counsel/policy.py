@@ -20,7 +20,7 @@ class Action(BaseModel):
     def run(self, vulnerability_summary: VulnerabilitiesSummary) -> None:
         logger.info(f"Running action for {vulnerability_summary.image_id}")
         logger.info(
-            f'  - Vulnerabilities found for "{vulnerability_summary.tags[0]}": {len(vulnerability_summary.vulnerabilities)}'  # noqa: E501
+            f'  - Vulnerabilities found for "{vulnerability_summary.image_id}": {len(vulnerability_summary.vulnerabilities)}'  # noqa: E501
         )
         logger.info("  - High/Critical Vulnerabilities:")
         for v in vulnerability_summary.vulnerabilities:
@@ -78,7 +78,7 @@ class Policy(BaseModel):
     execution_history: List[str] = []
 
     def check_policy(self, vulnerabilities_summary: VulnerabilitiesSummary) -> bool:
-        logger.info(f"Checking policy for: {vulnerabilities_summary.tags[0]}")
+        logger.info(f"Checking policy for: {vulnerabilities_summary.image_id}")
         # sourcery skip: use-any, use-next
         # Check agains history:
         history_pass = False
@@ -121,7 +121,7 @@ class Policy(BaseModel):
         self, vulnerabilities_summary: VulnerabilitiesSummary, force: bool = False
     ) -> bool:
         logger.info(
-            f"Attempting to apply policy for: {vulnerabilities_summary.tags[0]}"
+            f"Attempting to apply policy for: {vulnerabilities_summary.image_id}"
         )
         if self.check_policy(vulnerabilities_summary) or force:
             self.action(vulnerabilities_summary)
